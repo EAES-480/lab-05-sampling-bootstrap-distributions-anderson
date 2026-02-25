@@ -12,7 +12,7 @@ output:
     code_folding: hide
     df_print: paged
 editor_options:
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -54,13 +54,12 @@ Use slides + past labs + Discord as needed, but make sure your final code is **y
 
 Complete the pipeline so `df` is a clean tibble. Filter for 2023, and replace fill values (-9999) with na.
 
-```{r load_data, echo=TRUE, eval=FALSE}
+```{r load_data, echo=TRUE, eval=T}
 # GOAL: Read the CSV from the repo and clean column names.
 # TODO: finish this pipeline.
 
-df <- read_csv("data/us-ams-simple.csv", na = c("____")) %>%
-  ___ %>%
-  ___
+df <- read_csv("data/us-ams-simple.csv", na = c("-9999")) %>%
+  filter(Year_local == 2023)
 
 glimpse(df)
 ```
@@ -72,7 +71,7 @@ Write code to add:
 - `month` as labeled abbreviated month (Jan–Dec)
 - `day_night` as "Day"/"Night" from `daytime` (0/1)
 
-```{r derive_time, echo=TRUE, eval=FALSE}
+```{r derive_time, echo=TRUE, eval=T}
 # GOAL: Create date/month/day_night columns.
 # HINT: DOY is 1-indexed, so use (doy - 1) with origin "YYYY-01-01".
 
@@ -80,10 +79,10 @@ df <- df %>%
  mutate(
     # TODO: create a Date column from year_local and doy
     # HINT: Jan 1 is DOY = 1, so use (doy - 1) with origin = "YYYY-01-01"
-    date = as.Date(___ - 1, origin = paste0(___, "-01-01")),
+    date = as.Date(DOY - 1, origin = paste0(Year_local, "-01-01")),
 
     # TODO: create a month column (numeric 1–12 or labeled months)
-    month = month(___, label = TRUE, abbr = TRUE),
+    month = month(date, label = TRUE, abbr = TRUE),
 
     # TODO: make a day/night label using daytime (0/1)
     day_night = if_else(daytime == 1, "Day", "Night")
@@ -101,11 +100,11 @@ df %>% count(day_night)
 
 Pick **2–3 variables** to analyze. Include at least **one flux** variable (e.g., `nee`, `fc`, `gpp`) and optionally one meteorological variable (e.g., `ta`, `le`).
 
-```{r choose_vars, echo=TRUE, eval=FALSE}
+```{r choose_vars, echo=TRUE, eval=T}
 vars <- c(
-  ___,  # e.g., "fc"
-  ___,  # e.g., "ta"
-  ___   # optional third variable
+  "FC",  # e.g., "fc"
+  "TA",  # e.g., "ta"
+  "GPP"   # optional third variable
 )
 
 # CHECK: confirm these columns exist (should return character(0))
@@ -120,7 +119,7 @@ Complete the code to compute **population mean** and **population SD** for each 
 
 Your output should be a tibble named `pop` with columns: `var`, `mean`, `sd`.
 
-```{r pop_params, echo=TRUE, eval=FALSE}
+```{r pop_params, echo=TRUE, eval=T}
 # GOAL: Create a tidy table of population parameters for vars.
 # TODO: complete this pipeline.
 
@@ -139,14 +138,14 @@ pop <- df %>%
     names_sep = "__",
     values_to = "value"
   ) %>%   
-  pivot_wider(names_from = ___, values_from = ___)       # TODO: pivot_wider
+  pivot_wider(names_from = stat, values_from = value)       # TODO: pivot_wider
 
 pop
 ```
 
 **Prompt (2–3 sentences):** Which variable has the largest population SD? What does that imply about the variability of that process?
 
-> *Write your answer here.*
+The GPP variable has the largest standard deviation. This means that process has the most variability. 
 
 ---
 
@@ -171,23 +170,24 @@ Write code to:
 
 Return a tibble with columns: `var`, `sample_mean`, `pop_mean`, `rel_error_pct`.
 
-```{r one_sample_relerr, echo=TRUE, eval=FALSE}
+```{r one_sample_relerr, echo=TRUE, eval=T}
 # GOAL: Relative error for point estimates from one random sample.
 
-set.seed(___)
-n_samp <- ___
+set.seed(123)
+n_samp <- 100
 
-samp <- ___
+samp <- df %>%
+  slice_sample(n = n_samp)
 
 # get mean point estimate for each variable
 est <- samp %>%
-  summarise(across(all_of(___), ~mean(.x, na.rm = ___))) %>%
+  summarise(across(all_of(vars), ~mean(.x, na.rm = TRUE))) %>%
   pivot_longer(everything(), names_to = "var", values_to = "sample_mean")
 
 # compute the relative error for each variable
 relerr <- est %>%
   left_join(pop %>% select(var, pop_mean = mean), by = "var") %>%
-  mutate(rel_error_pct = 100 * abs(___ - ___) / abs(___)) %>%
+  mutate(rel_error_pct = 100 * abs(pop_mean - sample_mean) / abs(pop_mean)) %>%
   arrange(desc(rel_error_pct))
 
 relerr
@@ -196,7 +196,7 @@ relerr
 **Prompt (3–4 sentences):** Which variable had the largest relative error at your chosen `n_samp`?  
 Give a scientific reason why some variables are harder to estimate from a small sample.
 
-> *Write your answer here.*
+FC had the largest relative error at the chosen `n_samp`. Flux variables are going to show more variability compared to variables like temperature. They fluctuate rapidly and may include extreme values, small samples are less representative of the full distribution. 
 
 ---
 
@@ -204,13 +204,13 @@ Give a scientific reason why some variables are harder to estimate from a small 
 
 We will focus on **one variable** and simulate many repeated studies. The next code chunk is doing quite a lot. Please review the #comments throughout and check you understand generally what each section is doing.
 
-```{r relerr_by_n, echo=TRUE, eval=FALSE}
+```{r relerr_by_n, echo=TRUE, eval=T}
 set.seed(480)
 
-n_grid <- c(___, ___, ___, ___)   # e.g., c(25, 100, 300, 1000)
-reps <- ___                        # e.g., 500 or 1000
+n_grid <- c(25, 100, 300, 1000)   # e.g., c(25, 100, 300, 1000)
+reps <- 500                        # e.g., 500 or 1000
 
-target_var <- "___"                # e.g., "fch4" or "fc"
+target_var <- "FC"                # e.g., "fch4" or "fc"
 
 # Pull the population vector (remove missing values once, up front)
 x_pop <- df[[target_var]]
@@ -236,7 +236,7 @@ for (i in seq_along(n_grid)) {
     x_samp <- sample(x_pop, size = n_samp, replace = FALSE)
     xbar <- mean(x_samp)
 
-    relerrs[j] <- 100 * abs(pop_mean_target - ___) / abs(pop_mean_target)
+    relerrs[j] <- 100 * abs(pop_mean_target - xbar) / abs(pop_mean_target)
   }
 
   sim_list[[i]] <- tibble(
@@ -258,21 +258,30 @@ sim_relerr
 
 2) Make a plot that communicates “relative error decreases with n”.
 
-```{r summarize_plot_relerr, echo=TRUE, eval=FALSE}
+```{r summarize_plot_relerr, echo=TRUE, eval=T}
 # GOAL: Summarize and plot the relationship between n and relative error.
 # TODO: write your own code.
 
-summary_relerr <- ___
+summary_relerr <- sim_relerr %>%
+  group_by(n) %>%
+  summarise(median_rel_error = median(rel_error_pct),
+            p90_rel_error = quantile(rel_error_pct, 0.9))
+  
 summary_relerr
 
-p_relerr <- ___
+p_relerr <- sim_relerr %>%
+  ggplot(aes(x = factor(n), y = rel_error_pct)) +
+  geom_boxplot()+
+  
+  labs( x = "Sample size (n)", y = "Relative error (%)")
+
 p_relerr
 ```
 
 **Prompt (3–4 sentences):** Describe the pattern. Is improvement from n=25→100 larger than 300→1000?  
 Why does accuracy show “diminishing returns” as n increases?
 
-> *Write your answer here.*
+Relative error decreases as sample size increases. The improvement from n = 25 to 100 is much larger than from n = 300 to 100. This pattern reflects lower improvement because sampling variability shrinks at a specific rate. As n becomes large, each observation reduces error by smaller amounts. 
 
 ---
 
@@ -292,13 +301,13 @@ Compute:
 - theoretical SE
 - simulated SD of sample means (over many replications)
 
-```{r se_compare, echo=TRUE, eval=FALSE}
+```{r se_compare, echo=TRUE, eval=T}
 set.seed(480)
 
 # TODO: pick a variable and sample size
-target_var <- ___
-n_samp <- ___
-reps <- ___
+target_var <- "GPP"
+n_samp <- 100
+reps <- 1000
 
 pop_sd_target <- pop %>% filter(var == target_var) %>% pull(sd)
 pop_mean_target <- pop %>% filter(var == target_var) %>% pull(mean)
@@ -308,8 +317,8 @@ means <- replicate(
   mean(sample(df[[target_var]], size = n_samp, replace = FALSE), na.rm = TRUE)
 )
 
-se_theory <- ___
-se_sim    <- ___
+se_theory <- pop_sd_target / sqrt(n_samp)
+se_sim    <- sd(means)
 
 tibble(
   target_var = target_var,
@@ -321,10 +330,10 @@ tibble(
 
 ### Plot the sampling distribution (fill-in)
 
-```{r plot_sampling_dist, echo=TRUE, eval=FALSE}
+```{r plot_sampling_dist, echo=TRUE, eval=T}
 tibble(mean_est = means) %>%
   ggplot(aes(x = mean_est)) +
-  geom_histogram(bins = ___, alpha = 0.85) +
+  geom_histogram(bins = 20, alpha = 0.85) +
   geom_vline(xintercept = pop_mean_target, linetype = "dashed", linewidth = 1.1) +
   theme_classic(base_size = 18) +
   labs(
@@ -338,7 +347,7 @@ tibble(mean_est = means) %>%
 **Prompt (3–5 sentences):** How close were `se_theory` and `se_simulated`?  
 What changes if you increase `n_samp` vs increase `reps`?
 
-> *Write your answer here.*
+If you increase `n_samp` SE decreases because variability of the mean shrinks with larger samples. If you increase `reps` SE does not change. It does however make the estimate of the sampling distribution more precise. 
 
 ---
 
@@ -358,24 +367,24 @@ Write code to:
 - compute bootstrap SD
 - plot the bootstrap distribution
 
-```{r bootstrap_mean, echo=TRUE, eval=FALSE}
+```{r bootstrap_mean, echo=TRUE, eval=T}
 set.seed(480)
 
 # TODO: choose settings
-target_var <- ___
-n_samp <- ___
-B <- ___
+target_var <- "TC"
+n_samp <- 100
+B <- 1000
 
 # one "field campaign" sample
 samp <- tibble(x = sample(x_pop, size = n_samp, replace = FALSE))
 
 # bootstrap sampling of the mean
 boot_means <- replicate(
-  ___,
-  mean(sample(samp$x, size = ___, replace = TRUE))
+  B,
+  mean(sample(samp$x, size = n_samp, replace = TRUE))
 )
 
-boot_sd <- sd(___)
+boot_sd <- sd(boot_means)
 
 tibble(
   sample_mean = mean(samp$x),
@@ -383,19 +392,21 @@ tibble(
 )
 ```
 
-```{r plot_boot, echo=TRUE, eval=FALSE}
+```{r plot_boot, echo=TRUE, eval=T}
 # TODO: plot boot_means and mark the sample mean
-___
+tibble(boot_mean = boot_means) %>%
+ggplot(aes(boot_mean)) +
+  geom_histogram(bins = 20, alpha = 0.85) +
+  geom_vline(xintercept = mean(samp$x)) +
+  labs(x = "Bootstrap means", y = "Count")
 ```
 
 **Prompt (4–6 sentences):** Compare the bootstrap distribution to the sampling distribution from Part III.  
 What is the bootstrap trying to approximate? When is bootstrap especially useful in EAES?
 
-> *Write your answer here.*
+The bootstrap distribution is trying to approximate the sampling distribution of the mean. The sampling distribution was formed using repetitive sampling of the population, the bootstrap resamples from one sample. It is trying to approximate the variability we would see if we had repeatedly sampled from the population. Bootstrap is useful when full population data is unavailable but we need uncertainty estimates. 
 
 ---
-
-
 
 
 # Submission
