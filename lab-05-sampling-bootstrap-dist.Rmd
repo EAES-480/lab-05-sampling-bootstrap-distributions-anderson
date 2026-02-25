@@ -408,7 +408,6 @@ The bootstrap distribution is trying to approximate the sampling distribution of
 
 ---
 
-
 # Submission
 
 - Knit your `.Rmd` to HTML.
