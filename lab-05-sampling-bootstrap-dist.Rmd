@@ -347,7 +347,7 @@ tibble(mean_est = means) %>%
 **Prompt (3–5 sentences):** How close were `se_theory` and `se_simulated`?  
 What changes if you increase `n_samp` vs increase `reps`?
 
-If you increase `n_samp` SE decreases because variability of the mean shrinks with larger samples. If you increase `reps` SE does not change. It does however make the estimate of the sampling distribution more precise. 
+If you increase `n_samp` SE decreases because variability of the mean shrinks with larger samples. If you increase `reps` SE does not change. It does however make the estimate of the sampling distribution more precise. So, sample size affects the estimate, while the number of preps affects how well the simulation shows the distribution. 
 
 ---
 
@@ -427,7 +427,7 @@ We will focus on **soil water content (`swc`)**.
 ```{r part2_prep, echo=TRUE, eval=T}
 # GOAL: Ensure df exists (loaded in Part I) and create a clean SWC population vector.
 
-swc_pop <- df$swc
+swc_pop <- df$SWC
 swc_pop <- swc_pop[!is.na(swc_pop)]
 
 pop_mean_swc <- mean(swc_pop)
@@ -458,14 +458,14 @@ swc_samp_random <- sample(swc_pop, size = n_samp, replace = FALSE)
 # 2) Bootstrap the mean (resample WITH replacement from the sample)
 boot_means_random <- replicate(
   B,
-  mean(sample(swc_samp_random, size = n_samp, replace = TRUE))
+  mean(sample(swc_samp_random, size = n_samp , replace = TRUE))
 )
 
 # 3) Summarize
 tibble(
   pop_mean = pop_mean_swc,
   sample_mean = mean(swc_samp_random),
-  boot_sd = sd(boots_means_random)
+  boot_sd = sd(boot_means_random)
 )
 ```
 
@@ -489,7 +489,7 @@ tibble(boot_mean = boot_means_random) %>%
 **Prompt (3–4 sentences):** Is the bootstrap distribution centered near the population mean?  
 What does the bootstrap SD represent here?
 
-> *Write your answer here.*
+The bootstrap distribution is centered close to the population mean, which occurs when the sample itself is representative of the underlying population. The bootstrap SD represents an estimate of the standard error of the sample mean, quantifying the uncertainty in the population mean based on the one sample. 
 
 ---
 
@@ -497,23 +497,23 @@ What does the bootstrap SD represent here?
 
 **Task:** Create a **summer-only** sample (Jun–Aug) of size `n = 200` and bootstrap the mean.
 
-> This simulates a field campaign that only measured during summer.
+> This simulates a field campaign that only measured during summer. 
 
 ```{r ex2_summer_sample, echo=TRUE, eval=T}
 # GOAL: Build a summer-only pool of SWC observations (Jun–Aug), then sample from that pool.
-
 # TODO: ensure df has a month column.
 # If you do not already have `month`, create it from a date column as in Part I.
 # HINT: month(date, label = TRUE, abbr = TRUE)
 
 df_summer <- df %>%
-  filter(___ %in% c("Jun", "Jul", "Aug")) %>%
-  filter(!is.na(___))
+  filter(month(date, label = TRUE, abbr = TRUE) %in% c("Jun", "Jul", "Aug")) %>%
+  filter(!is.na(SWC))
 
-swc_summer_pool <- df_summer$swc
+swc_summer_pool <- df_summer$SWC
 
 length(swc_summer_pool)
 ```
+df
 
 ```{r ex2_summer_bootstrap, echo=TRUE, eval=T}
 set.seed(480)
@@ -522,12 +522,12 @@ n_samp <- 200
 B <- 4000
 
 # 1) Draw a summer-only sample
-swc_samp_summer <- sample(___, size = n_samp, replace = FALSE)
+swc_samp_summer <- sample(swc_summer_pool, size = n_samp, replace = FALSE)
 
 # 2) Bootstrap the mean from that sample
-boot_means_summer <- ___(
+boot_means_summer <- replicate(
   B,
-  mean(sample(___, size = n_samp, replace = TRUE))
+  mean(sample(swc_samp_summer, size = n_samp, replace = TRUE))
 )
 
 # 3) Summarize
@@ -544,7 +544,7 @@ tibble(
 
 tibble(boot_mean = boot_means_summer) %>%
   ggplot(aes(x = boot_mean)) +
-  geom_histogram(bins = ___, alpha = 0.85) +
+  geom_histogram(bins = 25, alpha = 0.85) +
   geom_vline(xintercept = mean(swc_samp_summer), linetype = "dashed", linewidth = 1.1) +
   geom_vline(xintercept = pop_mean_swc, linetype = "solid", linewidth = 1.1) +
   theme_classic(base_size = 18) +
@@ -560,8 +560,9 @@ tibble(boot_mean = boot_means_summer) %>%
 Explain the difference between **precision** and **accuracy** in this example.  
 What *kind* of error is summer-only sampling introducing?
 
-> *Write your answer here.*
-
+Yes, the bootstrap distribution looks narrow, even when centered away from the population mean. 
+The bootstrap measures the variability of estimates within the chosen sample, and not how similar or representative the sample is of the population. Precision refers to how consistent the estimates are, while accuracy refers to how close the estimate is to the actual population value. 
+Summer-only sampling introduces sampling bias, since we are excluding information that could be received by sampling in the other seasons. 
 ---
 
 ## Exercise 3 — Stratified sampling (by month) → bootstrap distribution
@@ -578,12 +579,12 @@ k_per_month <- n_samp / 12
 
 # 1) Create a month-stratified sample from df
 df_strat <- df %>%
-  filter(!is.na()) %>%
-  group_by(___) %>%
-  slice_sample(n = ) %>%
+  filter(!is.na(SWC)) %>%
+  group_by(month) %>%
+  slice_sample(n = k_per_month ) %>%
   ungroup()
 
-swc_samp_strat <- df_strat$swc
+swc_samp_strat <- df_strat$SWC
 
 # CHECK:
 df_strat %>% count(month)
@@ -627,8 +628,8 @@ tibble(boot_mean = boot_means_strat) %>%
 Which sampling design is most accurate for the annual mean? Which looks most precise?  
 What does this teach you about bootstrap and study design?
 
-> *Write your answer here.*
-
+The random and stratified sampling seem to produce the best bootstrap distributions, as they are closer to the population mean. The summer-only bootstrap has a narrow spread, making it seem precise, but it excludes other seasons which makes it inaccurate. The stratified sampling is the most accurate because observations from all months are represented equally. 
+This exercise shows that bootstrapping measures uncertainty within a sample, but the biased sampling designs still influence the overall distributions. 
 ---
 
 # Part II wrap-up
@@ -656,24 +657,23 @@ A 95% bootstrap confidence interval can be estimated using the **2.5% and 97.5% 
 
 Using the **random SWC sample from earlier**, compute a **95% bootstrap confidence interval for the mean**.
 
-```{r ex1_boot_ci_mean, echo=TRUE, eval=FALSE}
+```{r ex1_boot_ci_mean, echo=TRUE, eval=T}
 # GOAL: compute the 2.5% and 97.5% quantiles of the bootstrap distribution
 
-quantile(boot_means_random, probs = c(___, ___))
+quantile(boot_means_random, probs = c(0.025, 0.975))
 ```
 
-**Prompt:**
-
-Does the confidence interval contain the **true population mean (`pop_mean_swc`)**?  
+**Prompt:** Does the confidence interval contain the **true population mean (`pop_mean_swc`)**?  
 What does this tell you about the uncertainty of the estimate?
 
+The confidence interval (95%) does contain the true population mean, which indicates that the interval shows the uncertainty that is associated with the estimation of the mean from the sample.
 ---
 
 ## Exercise 2 — Visualizing the Confidence Interval
 
 Modify the bootstrap histogram from Part II so that the **95% CI is shown on the plot**.
 
-```{r ex2_plot_ci, echo=TRUE, eval=FALSE}
+```{r ex2_plot_ci, echo=TRUE, eval=T}
 boot_ci <- quantile(boot_means_random, probs = c(0.025, 0.975))
 
 tibble(boot_mean = boot_means_random) %>%
@@ -684,10 +684,9 @@ tibble(boot_mean = boot_means_random) %>%
   theme_classic(base_size = 18)
 ```
 
-**Prompt:**
+**Prompt:** Explain what the **red vertical lines** represent.
 
-Explain what the **red vertical lines** represent.
-
+The red vertical lines represent the 2.5th and 97.5th percentiles of the distribution. These values mark the range of sample means that contain the 95% of central bootstrap estimates.
 ---
 
 ## Exercise 3 — Confidence Intervals for a Linear Model
@@ -705,9 +704,11 @@ Examples:
 - `swc ~ le`
 - `gpp ~ ta`
 
-```{r ex3_fit_model, echo=TRUE, eval=FALSE}
-response_var <- "___"
-predictor_var <- "___"
+```{r ex3_fit_model, echo=TRUE, eval=T}
+df_sample <- df %>% slice_sample(n = 1000, replace = FALSE)
+
+response_var <- "SWC"
+predictor_var <- "TA"
 
 model <- lm(df[[response_var]] ~ df[[predictor_var]])
 
@@ -723,7 +724,7 @@ B <- 2000
 
 boot_coef <- replicate(B, {
 
-  samp_rows <- df %>% slice_sample(n = nrow(df), replace = TRUE)
+  samp_rows <- df_sample %>% slice_sample(n = nrow(df_sample), replace = TRUE)
 
   fit <- lm(
     samp_rows[[response_var]] ~ samp_rows[[predictor_var]]
@@ -734,22 +735,21 @@ boot_coef <- replicate(B, {
 })
 
 boot_coef <- t(boot_coef)
+boot_coef
 ```
 
 ### Compute confidence intervals
 
-```{r ex3_ci_params, echo=TRUE, eval=FALSE}
+```{r ex3_ci_params, echo=TRUE, eval=F}
 quantile(boot_coef[,1], probs = c(0.025, 0.975))  # intercept CI
 quantile(boot_coef[,2], probs = c(0.025, 0.975))  # slope CI
 ```
 
-**Prompt:**
-
-Interpret the slope confidence interval.
-
+**Prompt:** Interpret the slope confidence interval.
 - Does it include zero?
 - What does that imply about the relationship between the predictor and response variable?
 
+The slope confidence interval does not include zero, which suggests that the predictor variable has an influential relationship with the response variable. The negative slope indicates that the predictor variable increases and the response decreases.
 ---
 
 # Submission
