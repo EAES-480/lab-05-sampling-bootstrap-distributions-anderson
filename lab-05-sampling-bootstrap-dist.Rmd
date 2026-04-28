@@ -15,6 +15,8 @@ editor_options:
   chunk_output_type: inline
 ---
 
+> GM GRADE: 9.75/10 - great work!
+
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(lubridate)
@@ -145,7 +147,9 @@ pop
 
 **Prompt (2–3 sentences):** Which variable has the largest population SD? What does that imply about the variability of that process?
 
-The GPP variable has the largest standard deviation. This means that process has the most variability. 
+> The GPP variable has the largest standard deviation. This means that process has the most variability. 
+
+> GM: Good answer!
 
 ---
 
@@ -196,7 +200,9 @@ relerr
 **Prompt (3–4 sentences):** Which variable had the largest relative error at your chosen `n_samp`?  
 Give a scientific reason why some variables are harder to estimate from a small sample.
 
-FC had the largest relative error at the chosen `n_samp`. Flux variables are going to show more variability compared to variables like temperature. They fluctuate rapidly and may include extreme values, small samples are less representative of the full distribution. 
+> FC had the largest relative error at the chosen `n_samp`. Flux variables are going to show more variability compared to variables like temperature. They fluctuate rapidly and may include extreme values, small samples are less representative of the full distribution. 
+
+> GM: Good answer!
 
 ---
 
@@ -281,7 +287,9 @@ p_relerr
 **Prompt (3–4 sentences):** Describe the pattern. Is improvement from n=25→100 larger than 300→1000?  
 Why does accuracy show “diminishing returns” as n increases?
 
-Relative error decreases as sample size increases. The improvement from n = 25 to 100 is much larger than from n = 300 to 100. This pattern reflects lower improvement because sampling variability shrinks at a specific rate. As n becomes large, each observation reduces error by smaller amounts. 
+> Relative error decreases as sample size increases. The improvement from n = 25 to 100 is much larger than from n = 300 to 100. This pattern reflects lower improvement because sampling variability shrinks at a specific rate. As n becomes large, each observation reduces error by smaller amounts. 
+
+> GM: Good answer!
 
 ---
 
@@ -347,8 +355,9 @@ tibble(mean_est = means) %>%
 **Prompt (3–5 sentences):** How close were `se_theory` and `se_simulated`?  
 What changes if you increase `n_samp` vs increase `reps`?
 
-If you increase `n_samp` SE decreases because variability of the mean shrinks with larger samples. If you increase `reps` SE does not change. It does however make the estimate of the sampling distribution more precise. So, sample size affects the estimate, while the number of preps affects how well the simulation shows the distribution. 
+> If you increase `n_samp` SE decreases because variability of the mean shrinks with larger samples. If you increase `reps` SE does not change. It does however make the estimate of the sampling distribution more precise. So, sample size affects the estimate, while the number of preps affects how well the simulation shows the distribution. 
 
+> GM: -0.25, careful, increasing bootstrap reps makes the boostrap distribution more closely resemble a normal distribution. 
 ---
 
 # Bootstrap intuition (one sample, many resamples)
@@ -404,7 +413,9 @@ ggplot(aes(boot_mean)) +
 **Prompt (4–6 sentences):** Compare the bootstrap distribution to the sampling distribution from Part III.  
 What is the bootstrap trying to approximate? When is bootstrap especially useful in EAES?
 
-The bootstrap distribution is trying to approximate the sampling distribution of the mean. The sampling distribution was formed using repetitive sampling of the population, the bootstrap resamples from one sample. It is trying to approximate the variability we would see if we had repeatedly sampled from the population. Bootstrap is useful when full population data is unavailable but we need uncertainty estimates. 
+> The bootstrap distribution is trying to approximate the sampling distribution of the mean. The sampling distribution was formed using repetitive sampling of the population, the bootstrap resamples from one sample. It is trying to approximate the variability we would see if we had repeatedly sampled from the population. Bootstrap is useful when full population data is unavailable but we need uncertainty estimates. 
+
+>GM: Great answer!
 
 ---
 
@@ -489,7 +500,7 @@ tibble(boot_mean = boot_means_random) %>%
 **Prompt (3–4 sentences):** Is the bootstrap distribution centered near the population mean?  
 What does the bootstrap SD represent here?
 
-The bootstrap distribution is centered close to the population mean, which occurs when the sample itself is representative of the underlying population. The bootstrap SD represents an estimate of the standard error of the sample mean, quantifying the uncertainty in the population mean based on the one sample. 
+> The bootstrap distribution is centered close to the population mean, which occurs when the sample itself is representative of the underlying population. The bootstrap SD represents an estimate of the standard error of the sample mean, quantifying the uncertainty in the population mean based on the one sample. 
 
 ---
 
@@ -560,9 +571,11 @@ tibble(boot_mean = boot_means_summer) %>%
 Explain the difference between **precision** and **accuracy** in this example.  
 What *kind* of error is summer-only sampling introducing?
 
-Yes, the bootstrap distribution looks narrow, even when centered away from the population mean. 
-The bootstrap measures the variability of estimates within the chosen sample, and not how similar or representative the sample is of the population. Precision refers to how consistent the estimates are, while accuracy refers to how close the estimate is to the actual population value. 
-Summer-only sampling introduces sampling bias, since we are excluding information that could be received by sampling in the other seasons. 
+> Yes, the bootstrap distribution looks narrow, even when centered away from the population mean. 
+
+> The bootstrap measures the variability of estimates within the chosen sample, and not how similar or representative the sample is of the population. Precision refers to how consistent the estimates are, while accuracy refers to how close the estimate is to the actual population value. 
+
+> Summer-only sampling introduces sampling bias, since we are excluding information that could be received by sampling in the other seasons. 
 ---
 
 ## Exercise 3 — Stratified sampling (by month) → bootstrap distribution
@@ -628,8 +641,9 @@ tibble(boot_mean = boot_means_strat) %>%
 Which sampling design is most accurate for the annual mean? Which looks most precise?  
 What does this teach you about bootstrap and study design?
 
-The random and stratified sampling seem to produce the best bootstrap distributions, as they are closer to the population mean. The summer-only bootstrap has a narrow spread, making it seem precise, but it excludes other seasons which makes it inaccurate. The stratified sampling is the most accurate because observations from all months are represented equally. 
-This exercise shows that bootstrapping measures uncertainty within a sample, but the biased sampling designs still influence the overall distributions. 
+> The random and stratified sampling seem to produce the best bootstrap distributions, as they are closer to the population mean. The summer-only bootstrap has a narrow spread, making it seem precise, but it excludes other seasons which makes it inaccurate. The stratified sampling is the most accurate because observations from all months are represented equally. 
+
+> This exercise shows that bootstrapping measures uncertainty within a sample, but the biased sampling designs still influence the overall distributions. 
 ---
 
 # Part II wrap-up
