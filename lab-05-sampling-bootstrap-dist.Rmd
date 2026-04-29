@@ -15,7 +15,7 @@ editor_options:
   chunk_output_type: inline
 ---
 
-> GM GRADE: 9.5/10 - great work!
+> GM GRADE: 9/10 - great work!
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -357,7 +357,8 @@ What changes if you increase `n_samp` vs increase `reps`?
 
 > If you increase `n_samp` SE decreases because variability of the mean shrinks with larger samples. If you increase `reps` SE does not change. It does however make the estimate of the sampling distribution more precise. So, sample size affects the estimate, while the number of preps affects how well the simulation shows the distribution. 
 
-> GM: -0.25, careful, increasing bootstrap reps makes the boostrap distribution more closely resemble a normal distribution. 
+> GM: -0.5, careful, yes, there is an increase in precision of the bootstrap distribution with increasing samples, but for `reps` increasing bootstrap reps makes the boostrap distribution more closely resemble a normal distribution.  Also, was hoping you would comment on the similarity of `se_theory` and `se_simulated`.
+
 ---
 
 # Bootstrap intuition (one sample, many resamples)
@@ -686,7 +687,10 @@ quantile(boot_means_random, probs = c(0.025, 0.975))
 **Prompt:** Does the confidence interval contain the **true population mean (`pop_mean_swc`)**?  
 What does this tell you about the uncertainty of the estimate?
 
-The confidence interval (95%) does contain the true population mean, which indicates that the interval shows the uncertainty that is associated with the estimation of the mean from the sample.
+> The confidence interval (95%) does contain the true population mean, which indicates that the interval shows the uncertainty that is associated with the estimation of the mean from the sample.
+
+> GM: good answer, but you can also say that the uncertainty of the estimate is good. the phrasing of the question is weak though, so I won't mark down here.
+
 ---
 
 ## Exercise 2 — Visualizing the Confidence Interval
@@ -706,7 +710,10 @@ tibble(boot_mean = boot_means_random) %>%
 
 **Prompt:** Explain what the **red vertical lines** represent.
 
-The red vertical lines represent the 2.5th and 97.5th percentiles of the distribution. These values mark the range of sample means that contain the 95% of central bootstrap estimates.
+> The red vertical lines represent the 2.5th and 97.5th percentiles of the distribution. These values mark the range of sample means that contain the 95% of central bootstrap estimates.
+
+> GM: Good answer!
+
 ---
 
 ## Exercise 3 — Confidence Intervals for a Linear Model
@@ -769,7 +776,10 @@ quantile(boot_coef[,2], probs = c(0.025, 0.975))  # slope CI
 - Does it include zero?
 - What does that imply about the relationship between the predictor and response variable?
 
-The slope confidence interval does not include zero, which suggests that the predictor variable has an influential relationship with the response variable. The negative slope indicates that the predictor variable increases and the response decreases.
+> The slope confidence interval does not include zero, which suggests that the predictor variable has an influential relationship with the response variable. The negative slope indicates that the predictor variable increases and the response decreases.
+
+> GM: -0.25, careful here: "the confidence interval of the slope does not include zero, which supports a statistically significant relationship betwen x and y."
+
 ---
 
 # Submission
